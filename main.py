@@ -4,6 +4,7 @@ from window import MainWindow
 
 
 def start_window():
+    print(1)
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()

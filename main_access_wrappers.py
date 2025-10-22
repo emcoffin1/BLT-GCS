@@ -6,12 +6,12 @@ from random import randint
 import numpy as np
 
 class LabJack(QObject):
-    updateValues = pyqtSignal(dict)
+    updateValues = pyqtSignal()
 
     def __init__(self):
         super().__init__()
         self.config = None
-        self.sensors = None
+        self.sensors = []
         self.get_config()
 
         self.timer = Timer(config=self.config)
@@ -53,16 +53,14 @@ class LabJack(QObject):
         # Currently no output control
         pass
 
-    def read_port(self, channel, c):
+    def read_port(self, channel):
         """
         Reads given analog channel
-        :param channel: Channel
-        :param c: Calibration equation for that sensor
+        :param channel: Channel number
         :return:
         """
         try:
             value = ljm.eReadName(self.handle, channel)
-            value = calibration(c=c, x=value)
             return value
 
         except Exception as e:
@@ -70,28 +68,25 @@ class LabJack(QObject):
             return None
 
     def emit_values(self):
-        update = {}
-        for i, j in self.config["inputChannels"].items():
+        """
+        Retrieves data and adds to sensor objects
+        :return:
+        """
+        for i in self.sensors:
             if self.read:
-                x = self.read_port(channel=j["PORT"], c=j["CALIBRATION"])
-                if x is not None or np.inf or np.isnan(x):
-                    self.sensors[i].append(x)
-                else:
-                    self.sensors[i].append(0)
+                # Get value
+                x = self.read_port(channel=i.port)
+
+                # Filter
+                if x is None or np.inf or np.isnan(x):
+                    x = 0
             else:
-                # print(1)
-                x = self.fake_values(range=int(j["MAX VALUE"]))
-                self.sensors[i].append(x)
-        # print(3)
-        # Check for the size of each list compared to sample size
-        for s,v in self.sensors.items():
-            if len(v) > self.config["inputChannels"][s]["SAMPLE"]:
-                v.pop(0)
+                x = self.fake_values(range=i.max)
 
-            # Get average values and apply to update
-            update[s] = sum(v) / len(v)
+            # Add value to object
+            i.add_data(x)
 
-        self.updateValues.emit(update)
+        self.updateValues.emit()
 
     def reconnect_labjack(self):
         """
@@ -113,4 +108,36 @@ class LabJack(QObject):
             self.config = json.load(config_file)
 
         sensors = self.config["inputChannels"]
-        self.sensors = {s: [] for s in sensors}
+        for i, j in sensors.items():
+            self.sensors.append(Sensor(name=i, port=j["PORT"], cal=j["CALIBRATION"], size=j["SAMPLE"], max=j["MAX VALUE"]))
+
+
+class Sensor:
+    def __init__(self, name, port, cal, size, max):
+        self.name = name
+        self.port = port
+        self.cal = list(cal)
+        self.size = int(size)
+        self.max = int(max)
+
+        self.values: list = []
+        self.y: float = 0
+
+    def calibration(self, x):
+        y = self.cal[0]*x**2 + self.cal[1]*x + self.cal[2]
+        return y
+
+    def add_data(self, x):
+        y_cal = self.calibration(x)
+        self.values.append(y_cal)
+        if len(self.values) > self.size:
+            self.values.pop(0)
+
+        y_sum = sum(self.values)/len(self.values)
+        self.y = y_sum
+
+    def get_value(self):
+        return self.y
+
+
+
