@@ -1,21 +1,119 @@
 {
   "boardInfo": {
     "version": "T7",
-    "connectionType": ["USB", "WIFI", "ETHERNET"],
+    "connectionType": [
+      "USB",
+      "WIFI",
+      "ETHERNET"
+    ],
     "identifier": "ANY",
     "sampleRate": 500
-    },
+  },
   "inputChannels": {
-    "LOX Tank 1": { "PORT": "AIN0",
-                    "SN": "B209",
-                    "CALIBRATION": [0, 1, 0],
-                    "SAMPLE": 5,
-                    "MAX VALUE": 1000},
-    "High Press": {
-                    "PORT": "AIN1",
-                    "SN": "B210",
-                    "CALIBRATION": [0, 1, 0],
-                    "SAMPLE": 5,
-                    "MAX VALUE": 6000}
+    "LOX TANK 1": {
+      "PORT": "AIN0",
+      "SN": "B209",
+      "CALIBRATION": [
+        0,
+        1,
+        0
+      ],
+      "SAMPLE": 5,
+      "MAX VALUE": 1000
+    },
+    "LOX TANK 2": {
+      "PORT": "AIN1",
+      "SN": "B210",
+      "CALIBRATION": [
+        0,
+        1,
+        0
+      ],
+      "SAMPLE": 5,
+      "MAX VALUE": 1000
+    },
+    "FUEL TANK 1": {
+      "PORT": "AIN2",
+      "SN": "B209",
+      "CALIBRATION": [
+        0,
+        1,
+        0
+      ],
+      "SAMPLE": 5,
+      "MAX VALUE": 1000
+    },
+    "FUEL TANK 2": {
+      "PORT": "AIN3",
+      "SN": "B210",
+      "CALIBRATION": [
+        0,
+        1,
+        0
+      ],
+      "SAMPLE": 5,
+      "MAX VALUE": 1000
+    },
+    "HIGH PRESS": {
+      "PORT": "AIN4",
+      "SN": "B209",
+      "CALIBRATION": [
+        0,
+        1,
+        0
+      ],
+      "SAMPLE": 5,
+      "MAX VALUE": 6000
+    },
+    "FUEL INLET": {
+      "PORT": "AIN5",
+      "SN": "B210",
+      "CALIBRATION": [
+        0,
+        1,
+        0
+      ],
+      "SAMPLE": 5,
+      "MAX VALUE": 1000
+    },
+    "LOX INLET": {
+      "PORT": "AIN6",
+      "SN": "B210",
+      "CALIBRATION": [
+        0,
+        1,
+        0
+      ],
+      "SAMPLE": 5,
+      "MAX VALUE": 1000
     }
+  },
+  "tableLists": {
+    "FULL LIST": [
+      "LOX TANK 1",
+      "LOX TANK 2",
+      "FUEL TANK 1",
+      "FUEL TANK 2",
+      "HIGH PRESS",
+      "FUEL INLET",
+      "LOX INLET"
+    ],
+    "TANKS": [
+      "LOX TANK 1",
+      "LOX TANK 2",
+      "FUEL TANK 1",
+      "FUEL TANK 2",
+      "HIGH PRESS"
+    ],
+    "FUEL SIDE": [
+      "FUEL TANK 1",
+      "FUEL TANK 2",
+      "FUEL INLET"
+    ],
+    "LOX SIDE": [
+      "LOX TANK 1",
+      "LOX TANK 2",
+      "LOX INLET"
+    ]
   }
+}

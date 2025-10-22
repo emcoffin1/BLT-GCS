@@ -1,4 +1,5 @@
 from PyQt6.QtCore import QObject, QTimer, pyqtSignal
+from collections import OrderedDict
 from labjack import ljm
 from util_func import *
 import json
@@ -12,6 +13,7 @@ class LabJack(QObject):
         super().__init__()
         self.config = None
         self.sensors = []
+        self.sensor_lookup = {}
         self.get_config()
 
         self.timer = Timer(config=self.config)
@@ -107,9 +109,16 @@ class LabJack(QObject):
         with open('config.json', 'r') as config_file:
             self.config = json.load(config_file)
 
+        self.config = update_table_lists(self.config)
+
+        with open("config.json", 'w') as f:
+            json.dump(self.config, f, indent=2)
+
         sensors = self.config["inputChannels"]
         for i, j in sensors.items():
             self.sensors.append(Sensor(name=i, port=j["PORT"], cal=j["CALIBRATION"], size=j["SAMPLE"], max=j["MAX VALUE"]))
+
+        self.sensor_lookup = {s.name: s for s in self.sensors}
 
 
 class Sensor:
@@ -137,7 +146,24 @@ class Sensor:
         self.y = y_sum
 
     def get_value(self):
-        return self.y
+        return round(self.y, 2)
 
 
+
+
+
+def update_table_lists(config):
+    full_list = list(config["inputChannels"].keys())
+
+    # Build a new ordered dictionary with FULL LIST first
+    ordered = OrderedDict()
+    ordered["FULL LIST"] = full_list
+
+    # Add the rest (skipping any existing FULL LIST)
+    for key, value in config["tableLists"].items():
+        if key != "FULL LIST":
+            ordered[key] = value
+
+    config["tableLists"] = ordered
+    return config
 

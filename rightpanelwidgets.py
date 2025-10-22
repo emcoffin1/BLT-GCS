@@ -1,10 +1,13 @@
-from PyQt6.QtCore import QObject
-from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QPushButton
+from PyQt6.QtCore import QObject, Qt
+from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QPushButton, QDial, QSlider, QProgressBar
+
+from sensordisplay import SensorDisplayPanel
 
 
 class MainPanel(QWidget):
     def __init__(self, labjack):
         super().__init__()
+        self.labjack = labjack
 
         # Layout
         layout = QGridLayout()
@@ -17,20 +20,25 @@ class MainPanel(QWidget):
         label = QLabel("Main")
         layout.addWidget(label)
 
+        sensorTable = SensorDisplayPanel(labjack=self.labjack)
+        layout.addWidget(sensorTable, 1, 1, 1, 1)
+
+
         # PT Readings
-        self.pt_list = {}
-        for i in labjack.config["inputChannels"]:
-            self.pt_list[i] = QLabel("0")
-            layout.addWidget(self.pt_list[i])
+        # self.pt_list = {}
+        # for i in self.labjack.sensors:
+        #     self.pt_list[i] = QLabel("0")
+        #     layout.addWidget(self.pt_list[i])
 
-        labjack.updateValues.connect(self.update_values)
+        # self.labjack.updateValues.connect(self.update_values)
 
-
-    def update_values(self, updates):
-        for s, v in self.pt_list.items():
-            if s in updates.keys():
-                updates[s] = round(updates[s], 2)
-                v.setText(str(updates[s]))
+    def update_values(self):
+        # iterate over all sensor objects []
+        for i in self.labjack.sensors:
+            # if the objects name (object.name) is in pt_list
+            # adjust the text to the appropriate value
+            if i in self.pt_list.keys():
+                self.pt_list[i].setText(str(i.y))
 
 
 class SettingsPanel(QWidget):

@@ -36,7 +36,7 @@ class MainWindow(QMainWindow):
         # Trigger events
         labjack.timer.updateTime.connect(self.left_panel.update_time)
         # timer.updateTime.connect(labjack.read_port)
-        labjack.updateValues.connect(self.right_panel.update_values)
+        # labjack.updateValues.connect(self.right_panel.update_values)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_Escape:
