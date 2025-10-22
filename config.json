@@ -1,0 +1,21 @@
+{
+  "boardInfo": {
+    "version": "T7",
+    "connectionType": ["USB", "WIFI", "ETHERNET"],
+    "identifier": "ANY",
+    "sampleRate": 500
+    },
+  "inputChannels": {
+    "LOX Tank 1": { "PORT": "AIN0",
+                    "SN": "B209",
+                    "CALIBRATION": [0, 1, 0],
+                    "SAMPLE": 5,
+                    "MAX VALUE": 1000},
+    "High Press": {
+                    "PORT": "AIN1",
+                    "SN": "B210",
+                    "CALIBRATION": [0, 1, 0],
+                    "SAMPLE": 5,
+                    "MAX VALUE": 6000}
+    }
+  }
