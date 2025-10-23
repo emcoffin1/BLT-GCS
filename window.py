@@ -15,28 +15,34 @@ class MainWindow(QMainWindow):
         # Window title and size
         self.setWindowTitle("BLT-GCS")
         self.showFullScreen()
+        # self.setGeometry(10,10, 1080, 720)
         self.setStyleSheet("background-color: darkgrey;"
                            "color: white;")
 
-        self.left_panel = LeftPanel()
+        self.left_panel = LeftPanel(labjack=labjack)
         self.right_panel = RightPanel(left_panel=self.left_panel, labjack=labjack)
+        self.top = InfoStrip(labjack=labjack)
 
-        # Layout
+        # Outer Layout
         container = QWidget()
-        layout = QHBoxLayout(container)
+        o_layout = QVBoxLayout(container)
+        o_layout.addWidget(self.top)
+
+
+        # Inner Layout
+        layout = QHBoxLayout()
         layout.addWidget(self.left_panel)
         layout.addWidget(self.right_panel)
         self.left_panel.setFixedWidth(int(self.width()*0.05))
 
-        self.setLayout(layout)
+        o_layout.addLayout(layout)
+        self.setLayout(o_layout)
 
 
         self.setCentralWidget(container)
 
         # Trigger events
-        labjack.timer.updateTime.connect(self.left_panel.update_time)
-        # timer.updateTime.connect(labjack.read_port)
-        # labjack.updateValues.connect(self.right_panel.update_values)
+        # labjack.timer.updateTime.connect(self.left_panel.update_time)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_Escape:

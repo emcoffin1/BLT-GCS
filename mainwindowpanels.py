@@ -1,15 +1,17 @@
 from PyQt6.QtCore import pyqtSignal, Qt, QTimer, QTime
 from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QStackedWidget
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QStackedWidget, QFormLayout, QHBoxLayout
 
-from rightpanelwidgets import MainPanel, SettingsPanel
+from rightpanelwidgets import MainPanel
+from settingspanel import SettingsPanel
 
 
 class LeftPanel(QWidget):
     changeWindow = pyqtSignal(int)
 
-    def __init__(self):
+    def __init__(self, labjack):
         super().__init__()
+        self.labjack = labjack
 
         # Layout
         layout = QVBoxLayout()
@@ -81,6 +83,7 @@ class LeftPanel(QWidget):
         self.log_but.clicked.connect(lambda: self.changeWindow.emit(1))
         self.settings_but.clicked.connect(lambda: self.changeWindow.emit(2))
 
+        self.labjack.timer.updateTime.connect(self.update_time)
         self.changeWindow.connect(self.highlight_button)
 
     def highlight_button(self, index):
@@ -88,9 +91,6 @@ class LeftPanel(QWidget):
             f = btn.font()
             f.setBold(idx == index)
             btn.setFont(f)
-
-
-
 
     def update_time(self, time):
         self.time.setText(time)
@@ -128,6 +128,48 @@ class RightPanel(QWidget):
     def switch_pages(self, index:int):
         self.stacked.setCurrentIndex(index)
 
-    def update_values(self, vals: dict):
-        pass
+
+class InfoStrip(QWidget):
+    def __init__(self, labjack):
+        super().__init__()
+        self.labjack = labjack
+
+
+        # Layout
+        layout = QHBoxLayout()
+        layout.setContentsMargins(0,0,0,0)
+        self.setLayout(layout)
+        self.setStyleSheet("""
+            QWidget {
+                color:black;
+                padding: 0;
+                
+            }
+            QLabel {
+                font-family: Consolas;
+                font-size: 11pt;
+                padding: 2px;
+            }
+        """)
+
+        # Forms
+        form1 = QFormLayout()
+        form1.addRow(QLabel("DAQ: "), QLabel(self.labjack.config["boardInfo"]["version"]))
+
+        form2 = QFormLayout()
+        form2.addRow(QLabel(""), QLabel(""))
+
+        form3 = QFormLayout()
+        form3.addRow(QLabel("READING: "), QLabel(str(self.labjack.read)))
+
+
+        # Make format
+        layout.addStretch(1)
+        layout.addLayout(form1)
+        layout.addStretch(1)
+        layout.addLayout(form2)
+        layout.addStretch(1)
+        layout.addLayout(form3)
+        layout.addStretch(1)
+
 

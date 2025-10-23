@@ -16,7 +16,8 @@ class LabJack(QObject):
         self.sensor_lookup = {}
         self.get_config()
 
-        self.timer = Timer(config=self.config)
+        self.timer = Timer()
+        self.timer.start_timer(config=self.config)
 
 
         self.handle = None
@@ -119,6 +120,10 @@ class LabJack(QObject):
             self.sensors.append(Sensor(name=i, port=j["PORT"], cal=j["CALIBRATION"], size=j["SAMPLE"], max=j["MAX VALUE"]))
 
         self.sensor_lookup = {s.name: s for s in self.sensors}
+        try:
+            self.timer.start_timer(config=self.config)
+        except AttributeError:
+            pass
 
 
 class Sensor:
@@ -130,6 +135,7 @@ class Sensor:
         self.max = int(max)
 
         self.values: list = []
+        self.y_history = []
         self.y: float = 0
 
     def calibration(self, x):
@@ -144,6 +150,9 @@ class Sensor:
 
         y_sum = sum(self.values)/len(self.values)
         self.y = y_sum
+        self.y_history.append(y_sum)
+        if len(self.y_history) > 30:
+            self.y_history.pop(0)
 
     def get_value(self):
         return round(self.y, 2)

@@ -1,6 +1,6 @@
 from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QComboBox, QStackedWidget, QFormLayout, QLabel
-
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QComboBox, QStackedWidget, QFormLayout, QLabel, QHBoxLayout
+import pyqtgraph as pg
 
 class SensorDisplayPanel(QWidget):
     def __init__(self, labjack):
@@ -51,7 +51,7 @@ class SensorDisplayPanel(QWidget):
                 if not sensor:
                     continue
 
-                font = QFont("Helvetica", 24)
+                font = QFont("Consolas", 24)
                 font.setBold(True)
                 name_label = QLabel(f"{sensor.name}: ")
                 name_label.setFont(font)
@@ -85,3 +85,55 @@ class SensorDisplayPanel(QWidget):
             half_width = self.parent().width() // 4
             self.setFixedWidth(half_width)
         super().resizeEvent(event)
+
+
+class GraphDisplay(QWidget):
+    def __init__(self, labjack, combo):
+        super().__init__()
+
+        self.labjack = labjack
+        self.combo = combo
+
+        # Layout
+        layout = QHBoxLayout()
+        self.setLayout(layout)
+
+        # Widget
+        self.plot_widget = pg.PlotWidget()
+        layout.addWidget(self.plot_widget)
+
+        # Plot layout
+        self.plot_widget.addLegend()
+        self.plot_widget.setLabel('left', 'PSI', units='-')
+        self.plot_widget.setLabel('bottom', units='-')
+        self.plot_widget.showGrid(x=True, y=True)
+
+
+        self.update_graph()
+        self.combo.selector.currentIndexChanged.connect(self.update_graph)
+        self.labjack.timer.updateValues.connect(self.refresh_graph)
+
+    def update_graph(self):
+        self.plot_widget.clear()  # fine to clear here, user just switched
+        selected = self.combo.selector.currentText()
+        table = self.labjack.config["tableLists"][selected]
+        colors = ["r", "g", "b", "y", "c", "w", "m"]
+        self.curves = {}  # store curves by sensor name
+        for i, name in enumerate(table):
+            pen = pg.mkPen(color=colors[i], width=2)
+
+            curve = self.plot_widget.plot(name=name, pen=pen)
+            self.curves[name] = curve
+
+    def refresh_graph(self):
+        for name, curve in self.curves.items():
+            obj = self.labjack.sensor_lookup[name]
+            data = obj.y_history
+            curve.setData(data)
+
+
+
+
+
+
+

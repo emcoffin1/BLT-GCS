@@ -6,17 +6,21 @@ from PyQt6.QtCore import QObject, QTimer, QTime, pyqtSignal
 class Timer(QObject):
     updateTime = pyqtSignal(str)
     updateValues = pyqtSignal()
-    def __init__(self, config, parent=None):
+    def __init__(self, parent=None):
         QObject.__init__(self, parent)
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.update)
-        self.timer.start(config["boardInfo"]["sampleRate"])
+
 
     def update(self):
         current_time = QTime.currentTime().toString("HH:mm:ss")
         self.updateTime.emit(current_time)
         self.updateValues.emit()
+
+    def start_timer(self, config):
+        self.timer.stop()
+        self.timer.start(config["boardInfo"]["sampleRate"])
 
 
 def log_error(e):
