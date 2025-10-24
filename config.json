@@ -1,11 +1,7 @@
 {
   "boardInfo": {
     "version": "T7",
-    "connectionType": [
-      "USB",
-      "WIFI",
-      "ETHERNET"
-    ],
+    "connectionType": "ANY",
     "identifier": "ANY",
     "sampleRate": 500
   },
@@ -86,6 +82,17 @@
       ],
       "SAMPLE": 5,
       "MAX VALUE": 1000
+    },
+    "CHAMBER 1": {
+      "PORT": "AIN7",
+      "SN": "B210",
+      "CALIBRATION": [
+        0,
+        1,
+        0
+      ],
+      "SAMPLE": 5,
+      "MAX VALUE": 1000
     }
   },
   "tableLists": {
@@ -96,7 +103,8 @@
       "FUEL TANK 2",
       "HIGH PRESS",
       "FUEL INLET",
-      "LOX INLET"
+      "LOX INLET",
+      "CHAMBER 1"
     ],
     "TANKS": [
       "LOX TANK 1",
