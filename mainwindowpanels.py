@@ -2,6 +2,7 @@ from PyQt6.QtCore import pyqtSignal, Qt, QTimer, QTime
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QStackedWidget, QFormLayout, QHBoxLayout
 
+from logpanel import LogPanel
 from rightpanelwidgets import MainPanel
 from settingspanel import SettingsPanel
 
@@ -113,7 +114,7 @@ class RightPanel(QWidget):
 
         # All page options
         self.main = MainPanel(labjack=labjack)
-        self.testing = QWidget()
+        self.testing = LogPanel(labjack=labjack)
         self.settings = SettingsPanel(labjack=labjack)
 
         self.stacked.addWidget(self.main)

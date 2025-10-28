@@ -111,7 +111,6 @@ class CalibrationEditor(QWidget):
         self.autosave_timer.timeout.connect(self.autosave)
         self.editor.textChanged.connect(self.schedule_autosave)
 
-
         outer_layout.addWidget(frame)
         self.selector.currentIndexChanged.connect(self.change_text)
 

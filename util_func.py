@@ -27,7 +27,7 @@ def log_error(e):
     time = datetime.now()
     time = time.strftime("%d/%m/%y - %H:%M:%S")
     msg = e
-    with open('log.txt', 'a') as f:
+    with open('error_log.txt', 'a') as f:
         f.write(str(time) + ': ' + str(msg) + '\n')
 
 def calibration(c: list, x:float):
