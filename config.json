@@ -3,7 +3,7 @@
     "version": "T7",
     "connectionType": "ANY",
     "identifier": "ANY",
-    "sampleRate": 500
+    "sampleRate": 200
   },
   "inputChannels": {
     "LOX TANK 1": {

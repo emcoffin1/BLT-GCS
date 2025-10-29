@@ -1,3 +1,6 @@
+from datetime import time
+import csv
+import os
 from PyQt6.QtCore import QObject, QTimer, pyqtSignal
 from collections import OrderedDict
 from labjack import ljm
@@ -5,15 +8,25 @@ from util_func import *
 import json
 from random import randint
 import numpy as np
+import pandas as pd
 
 class LabJack(QObject):
     updateValues = pyqtSignal()
+    updateLog = pyqtSignal()
 
     def __init__(self):
         super().__init__()
         self.config = None
         self.sensors = []
         self.sensor_lookup = {}
+
+        self.data_log = pd.DataFrame()
+        self.err_log = {}
+        self._iter = 0
+        self._filename = None
+        self.record = False
+        # self.init_data_log()
+
         self.get_config()
 
         self.timer = Timer()
@@ -51,12 +64,12 @@ class LabJack(QObject):
         """
         ljm.close(self.handle)
 
-    def write(self):
+    def _write(self):
         # Temporary no functionality
         # Currently no output control
         pass
 
-    def read_port(self, channel):
+    def _read_port(self, channel):
         """
         Reads given analog channel
         :param channel: Channel number
@@ -70,26 +83,37 @@ class LabJack(QObject):
             log_error(e)
             return None
 
-    def emit_values(self):
+    def emit_values(self,timestamp):
         """
         Retrieves data and adds to sensor objects
         :return:
         """
+        new_row = {"timestamp": timestamp}
+
         for i in self.sensors:
             if self.read:
                 # Get value
-                x = self.read_port(channel=i.port)
+                x = self._read_port(channel=i.port)
 
                 # Filter
-                if x is None or np.inf or np.isnan(x):
+                if x is None or np.isinf(x) or np.isnan(x):
                     x = 0
             else:
-                x = self.fake_values(range=i.max)
+                x = self._fake_values(range=i.max)
 
             # Add value to object
             i.add_data(x)
+            new_row[i.name] = i.get_value()
 
+        self.data_log.loc[len(self.data_log)] = [
+            new_row.get(col, None) for col in self.data_log.columns
+        ]
+
+        self.save_to_logs()
         self.updateValues.emit()
+
+        # Double clear the data just in case
+        self.data_log = self.data_log.iloc[0:0]
 
     def reconnect_labjack(self):
         """
@@ -98,7 +122,7 @@ class LabJack(QObject):
         self.close_labjack()
         self.connect_labjack()
 
-    def fake_values(self, range: int):
+    def _fake_values(self, range: int):
         try:
             x = randint(0, range)
             return x
@@ -107,23 +131,114 @@ class LabJack(QObject):
 
     def get_config(self):
         """Initializes config file"""
+
+        # == OPEN CONFIG FILE == #
+
         with open('config.json', 'r') as config_file:
             self.config = json.load(config_file)
 
+        # == END == #
+
+        # == SET FULL LIST OF SENSORS == #
+
+        # Create a list of all sensors within the config file
         self.config = update_table_lists(self.config)
 
+        # Save that list in config
         with open("config.json", 'w') as f:
             json.dump(self.config, f, indent=2)
+
+        # == END == #
+
+        # == CREATE SENSOR LISTS AND ITEMS == #
 
         sensors = self.config["inputChannels"]
         for i, j in sensors.items():
             self.sensors.append(Sensor(name=i, port=j["PORT"], cal=j["CALIBRATION"], size=j["SAMPLE"], max=j["MAX VALUE"]))
 
         self.sensor_lookup = {s.name: s for s in self.sensors}
-        try:
-            self.timer.start_timer(config=self.config)
-        except AttributeError:
-            pass
+
+        # == END == #
+
+        # == CREATE VALUE LOG == #
+
+        self.data_log["timestamp"] = []
+        for k in self.sensors:
+            self.data_log[k.name] = []
+        # self.init_data_log()
+
+    def save_to_logs(self):
+        # == DONT MOVE ON CONDITIONS == #
+
+        # If not set to record
+        if not self.record:
+            return
+
+        # Make sure line isn't empty
+        if self.data_log.empty:
+            return
+
+
+        # == END == #
+
+        # == BEGIN LOGGING == #
+
+        self.data_log.to_csv(self._filename, mode='a', header=False, index=False)
+
+        # == END == #
+
+        # == CLEAR DATA == #
+
+        self.data_log = self.data_log.iloc[0:0]
+
+        # == END == #
+
+        self._iter = 0
+        self.updateLog.emit()
+
+    def init_data_log(self):
+        """ Initializes the data logger as a CSV """
+
+        # == INIT FILE NAME == #
+
+        base_name = "dataLog"
+        ext = ".csv"
+        filename = base_name + ext
+
+        # Check if the file name already exists
+        # If it does add a value
+        # Iterate until it doesn't exist
+        counter = 1
+        while os.path.exists(filename):
+            filename = f"{base_name}{counter}{ext}"
+            counter += 1
+
+        self._filename = filename
+        print(f"Recording to: {self._filename}")
+
+        # == END == #
+
+        # == CREATE FILE AND COLUMNS == #
+        sensor_names = [s.name for s in self.sensors]
+        columns = ["timestamp"] + sensor_names
+
+        self.data_log = pd.DataFrame(columns=columns)
+        self.data_log.to_csv(self._filename, index=False)
+
+        # == END == #
+
+        # Ensure we're at 0
+        self._iter = 0
+
+    def start_recording(self):
+        # == TRIGGER DATA SAVING == #
+        if self.record:
+            # Already recording
+            self.record = False
+        else:
+            self.record = True
+            self.init_data_log()
+
 
 
 class Sensor:

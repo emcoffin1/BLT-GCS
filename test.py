@@ -1,5 +1,4 @@
 import random
-l = {"g": 2}
-k = {"g":0, "h":1}
-
-print(k["g"])
+j = {1: 0, 2: 4, 3: 5}
+l =[i for i in j.keys()]
+print(l)

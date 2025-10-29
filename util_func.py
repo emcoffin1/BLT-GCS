@@ -5,7 +5,7 @@ from PyQt6.QtCore import QObject, QTimer, QTime, pyqtSignal
 
 class Timer(QObject):
     updateTime = pyqtSignal(str)
-    updateValues = pyqtSignal()
+    updateValues = pyqtSignal(str)
     def __init__(self, parent=None):
         QObject.__init__(self, parent)
 
@@ -16,7 +16,7 @@ class Timer(QObject):
     def update(self):
         current_time = QTime.currentTime().toString("HH:mm:ss")
         self.updateTime.emit(current_time)
-        self.updateValues.emit()
+        self.updateValues.emit(current_time)
 
     def start_timer(self, config):
         self.timer.stop()
@@ -29,6 +29,7 @@ def log_error(e):
     msg = e
     with open('error_log.txt', 'a') as f:
         f.write(str(time) + ': ' + str(msg) + '\n')
+
 
 def calibration(c: list, x:float):
     """
